@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            margin: 0;
+            flex-direction: column;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: #fff;
+            text-align: center;
+        }
+
+        .expense-tracker {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        .expense-tracker:hover {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        input:focus, select:focus, button:focus {
+            outline: none;
+            border-color: #6a11cb;
+        }
+
+        button {
+            background-color: #2575fc;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #6a11cb;
+        }
+
+        .expense-list {
+            margin-top: 30px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            transition: background-color 0.3s ease;
+        }
+
+        .expense-item:hover {
+            background-color: #f1f1f1;
+        }
+
+        .expense-item span {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .expense-item button {
+            background-color: #ff6347;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 45%;
+            padding: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .expense-item button:hover {
+            background-color: #e55347;
+        }
+
+        .expense-item .edit-btn {
+            background-color: #ffeb3b;
+        }
+
+        .expense-item .edit-btn:hover {
+            background-color: #e0c200;
+        }
+
+        .total-expenses {
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 20px;
+            color: #2575fc;
+        }
+
+        .editable {
+            background-color: #ffeb3b;
+        }
+    </style>
+</head>
+<body>
+    <h1>Expense Tracker</h1>
+    <div class="expense-tracker">
+        <input type="text" id="expenseName" placeholder="Expense Name" />
+        <input type="number" id="expenseAmount" placeholder="Amount" />
+        <select id="expenseCategory">
+            <option value="" disabled selected>Choose Category</option>
+            <option value="Food">Food</option>
+            <option value="Transport">Transport</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Others">Others</option>
+            <option value="Utilities">Utilities</option>
+            <option value="Healthcare">Healthcare</option>
+            <option value="Housing">Housing</option>
+            <option value="Insurance">Insurance</option>
+            <option value="Personal Care">Personal Care</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Education">Education</option>
+            <option value="Travel">Travel</option>
+            <option value="Dining Out">Dining Out</option>
+            <option value="Subscriptions">Subscriptions</option>
+        </select>
+        <button id="addExpenseBtn">Add Expense</button>
+        
+        <div class="expense-list" id="expenseList"></div>
+        
+        <div class="total-expenses" id="totalExpenses">Total: RM 0.00</div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            let expenses = [];
+
+            // Add Expense
+            $('#addExpenseBtn').click(function() {
+                const expenseName = $('#expenseName').val();
+                const expenseAmount = parseFloat($('#expenseAmount').val());
+                const expenseCategory = $('#expenseCategory').val();
+
+                if (expenseName && !isNaN(expenseAmount) && expenseAmount > 0 && expenseCategory) {
+                    const expense = {
+                        name: expenseName,
+                        amount: expenseAmount,
+                        category: expenseCategory
+                    };
+                    expenses.push(expense);
+                    updateExpenseList();
+                    updateTotalExpenses();
+                    clearInputs();
+                } else {
+                    alert('Please enter valid expense details');
+                }
+            });
+
+            // Edit Expense
+            function editExpense(index) {
+                const expense = expenses[index];
+                const newName = prompt("Edit Expense Name:", expense.name);
+                const newAmount = parseFloat(prompt("Edit Amount (RM):", expense.amount));
+                const newCategory = prompt("Edit Category:", expense.category);
+
+                if (newName && !isNaN(newAmount) && newAmount > 0 && newCategory) {
+                    expenses[index] = {
+                        name: newName,
+                        amount: newAmount,
+                        category: newCategory
+                    };
+                    updateExpenseList();
+                    updateTotalExpenses();
+                } else {
+                    alert('Please enter valid details');
+                }
+            }
+
+            // Remove Expense
+            function removeExpense(index) {
+                expenses.splice(index, 1);
+                updateExpenseList();
+                updateTotalExpenses();
+            }
+
+            // Update Expense List
+            function updateExpenseList() {
+                $('#expenseList').empty();
+                expenses.forEach((expense, index) => {
+                    const expenseItem = $(`
+                        <div class="expense-item">
+                            <span>${expense.name} - RM ${expense.amount.toFixed(2)} (${expense.category})</span>
+                            <div>
+                                <button class="edit-btn" onclick="editExpense(${index})"><i class="fas fa-edit"></i></button>
+                                <button onclick="removeExpense(${index})"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        </div>
+                    `);
+                    $('#expenseList').append(expenseItem);
+                });
+            }
+
+            // Update Total Expenses
+            function updateTotalExpenses() {
+                const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+                $('#totalExpenses').text(`Total: RM ${total.toFixed(2)}`);
+            }
+
+            // Clear Input Fields
+            function clearInputs() {
+                $('#expenseName').val('');
+                $('#expenseAmount').val('');
+                $('#expenseCategory').val('');
+            }
+
+            // Expose the edit and remove functions globally
+            window.editExpense = editExpense;
+            window.removeExpense = removeExpense;
+        });
+    </script>
+</body>
+</html>
